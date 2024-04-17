@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>图片裁剪工具</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.min.css"
+    />
+    <style>
+      #image {
+        width: 800px;
+        height: 500px;
+      }
+      .img {
+        width: 500px;
+      }
+      #cropped-result {
+        width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>圖片上傳</h1>
+      <input type="file" id="uploadimg" />
+      <button onclick="updateimg()">上傳</button>
+    </div>
+    <section id="croppersection" style="display: none">
+      <div style="width: 1000px">
+        <img src="" id="image" />
+      </div>
+      <button onclick="split()">裁剪</button>
+      <button onclick="rotate(-10)">逆时针旋转</button>
+      <button onclick="rotate(10)">顺时针旋转</button>
+      <div class="img">
+        <img id="cropped-result" style="overflow: hidden" />
+        <img id="dataimg" />
+      </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.min.js"></script>
+    <script>
+      var image = document.getElementById("image");
+      var cropper;
+
+      function updateimg(e) {
+        let file = document.getElementById("uploadimg").files[0];
+
+        let readFile = new FileReader();
+        if (file) {
+          readFile.readAsDataURL(file);
+          readFile.addEventListener("load", function (e) {
+            image.src = e.target.result;
+            //cropBoxMovable:是否可以拖拽裁剪框
+            //cropBoxResizable:是否可以改变裁剪框的尺寸
+            cropper = new Cropper(image, {
+              dragMode: "move",
+              aspectRatio: 3 / 2,
+              cropBoxMovable: false,
+              cropBoxResizable: false,
+            });
+            image.addEventListener("ready", function () {
+              let cropbox = document.querySelector(".cropper-crop-box");
+              let img = document.createElement("img");
+              img.src = "./mask.png";
+              // 添加絕對定位的樣式
+              img.style.position = "absolute";
+              img.style.top = 0;
+              img.style.left = 0;
+              // 計算圖片在cropper-face中的位置
+              cropbox.style.position = "relative";
+              // 將img插入到.cropper-face元素的內部
+              cropbox.appendChild(img);
+            });
+            document.getElementById("croppersection").style.display = "block";
+          });
+        }
+      }
+
+      function split() {
+        let canvas = cropper.getCroppedCanvas();
+        let croppedData = canvas.toDataURL("image/jpeg");
+        let resultElement = document.getElementById("cropped-result");
+        resultElement.src = croppedData;
+
+        var canvas2 = document.createElement("canvas");
+        cut = canvas2.getContext("2d");
+
+        // 绘制裁剪后的图像到新的 Canvas (canvas2)
+        cut.drawImage(canvas, 0, 0, 100, 100, 0, 0, 100, 100);
+
+        // 将新 Canvas (canvas2) 中的图像数据转换为 data URL，并将其设置为另一个元素的 src
+        document.getElementById("dataimg").src =
+          canvas2.toDataURL("image/jpeg");
+      }
+
+      function rotate(degrees) {
+        cropper.rotate(degrees);
+      }
+
+      //https://blog.csdn.net/xiaohui_brook/article/details/117655386
+      //https://mraining.github.io/Cropperjs.html
+    </script>
+  </body>
+</html>
