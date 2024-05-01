@@ -6,39 +6,86 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/solid.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/solid.min.js"></script>
     <style>
       #image {
         width: 800px;
         height: 500px;
       }
       .img {
-        width: 500px;
+        width: 800px;
       }
       #cropped-result {
         width: 100%;
         height: auto;
       }
+      #croppersection {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80dvw;
+        height: 80dvh;
+        padding: 3%;
+        border-radius: 10px;
+        box-sizing: content-box;
+        box-shadow: 5px 5px 20px #aaa;
+        background-color: #fff;
+      }
+      /* #croppersection > .cropper-box {
+        width: 800px;
+        margin: auto;
+        top: 0;
+        left: 0;
+      } */
+      #croppersection .btn-box {
+        display: flex;
+        justify-content: center;
+      }
+      #croppersection > .close {
+        cursor: pointer;
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        right: -15px;
+        top: -15px;
+        border-radius: 50%;
+        border: 3px solid orange;
+        background-color: orange;
+        z-index: 100;
+      }
     </style>
   </head>
   <body>
     <div>
+      <a href="./camera.html">手機相機並添加取景框</a>
       <h1>圖片上傳</h1>
       <input type="file" id="uploadimg" />
       <button onclick="updateimg()">上傳</button>
     </div>
     <section id="croppersection" style="display: none">
-      <div style="width: 1000px">
-        <img src="" id="image" />
+      <div>
+        <div class="cropper-box">
+          <img src="" id="image" />
+        </div>
+        <div class="btn-box">
+          <button onclick="split()">完成裁剪</button>
+          <button onclick="rotate(-10)">逆時針旋轉</button>
+          <button onclick="rotate(10)">順時針旋轉</button>
+          <button onclick="zoom(0.1)">放大</button>
+          <button onclick="zoom(-0.1)">縮小</button>
+        </div>
       </div>
-      <button onclick="split()">裁剪</button>
-      <button onclick="rotate(-10)">逆时针旋转</button>
-      <button onclick="rotate(10)">顺时针旋转</button>
-      <div class="img">
-        <img id="cropped-result" style="overflow: hidden" />
-        <img id="dataimg" />
-      </div>
+      <button class="close" onclick="closebox()">X</button>
     </section>
-
+    <div class="img">
+      <img id="cropped-result" style="overflow: hidden" />
+      <img id="dataimg" />
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.min.js"></script>
     <script>
       var image = document.getElementById("image");
@@ -59,6 +106,7 @@
               aspectRatio: 3 / 2,
               cropBoxMovable: false,
               cropBoxResizable: false,
+              minCropBoxWidth: 400,
             });
             image.addEventListener("ready", function () {
               let cropbox = document.querySelector(".cropper-crop-box");
@@ -77,27 +125,39 @@
           });
         }
       }
-
+      function closebox() {
+        document.getElementById("croppersection").style.display = "none";
+        cropper.destroy();
+      }
       function split() {
         let canvas = cropper.getCroppedCanvas();
         let croppedData = canvas.toDataURL("image/jpeg");
         let resultElement = document.getElementById("cropped-result");
         resultElement.src = croppedData;
-
+        cvdata = cropper.getData(true);
         var canvas2 = document.createElement("canvas");
+        canvas.width = cvdata["width"];
+        canvas.height = cvdata["height"];
         cut = canvas2.getContext("2d");
 
         // 绘制裁剪后的图像到新的 Canvas (canvas2)
-        cut.drawImage(canvas, 0, 0, 100, 100, 0, 0, 100, 100);
-
+        //cut.drawImage(canvas, 0, 0, 100, 100, 0, 0, 100, 100);
+        cut.drawImage(canvas, 40, 190, 180, 80);
+        document.getElementById("croppersection").style.display = "none";
         // 将新 Canvas (canvas2) 中的图像数据转换为 data URL，并将其设置为另一个元素的 src
         document.getElementById("dataimg").src =
           canvas2.toDataURL("image/jpeg");
+        cropper.destroy();
       }
 
       function rotate(degrees) {
         cropper.rotate(degrees);
       }
+      function zoom(num) {
+        cropper.zoom(num);
+      }
+
+      //https://jiaming0708.github.io/2018/12/22/canvas-drawimage/
 
       //https://blog.csdn.net/xiaohui_brook/article/details/117655386
       //https://mraining.github.io/Cropperjs.html
